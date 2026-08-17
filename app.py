@@ -3,20 +3,28 @@ import tensorflow as tf
 import numpy as np
 import gdown
 import os
+from pathlib import Path
 
 
-file_id='16MDg5WhpxgXr7DzGXcOd9KMAMxve4D3q'
-url='https://drive.google.com/file/d/16MDg5WhpxgXr7DzGXcOd9KMAMxve4D3q'
-model_path="trained_plant_disease_model.keras"
+file_id = "16MDg5WhpxgXr7DzGXcOd9KMAMxve4D3q"
+model_path = Path("trained_plant_disease_model.keras")
 
-if not os.path.exists(model_path):
+if not model_path.exists():
     st.warning("Downloading model from Google Drive...")
-    gdown.download(id=file_id, output=model_path, quiet=False)
+    gdown.download(
+        f"https://drive.google.com/uc?id={file_id}",
+        str(model_path),
+        quiet=False,
+    )
 
 
-model_path = "trained_plant_disease_model.keras"
+@st.cache_resource
+def load_disease_model():
+    return tf.keras.models.load_model(model_path, compile=False)
+
+
 def model_prediction(test_image):
-    model = tf.keras.models.load_model(model_path, compile=False)
+    model = load_disease_model()
     image = tf.keras.preprocessing.image.load_img(test_image,target_size=(128,128))
     input_arr = tf.keras.preprocessing.image.img_to_array(image)
     input_arr = np.array([input_arr]) #convert single image to batch
